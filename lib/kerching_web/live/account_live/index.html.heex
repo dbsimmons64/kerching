@@ -29,13 +29,21 @@
   </:action>
 </.table>
 
-<.modal :if={@live_action in [:new, :edit]} id="account-modal" show on_cancel={JS.patch(~p"/accounts")}>
+<.modal
+  :if={@live_action in [:new, :edit]}
+  id="account-modal"
+  show
+  on_cancel={JS.patch(~p"/accounts")}
+>
   <.live_component
     module={KerchingWeb.AccountLive.FormComponent}
     id={@account.id || :new}
     title={@page_title}
     action={@live_action}
     account={@account}
+    accounts={@accounts}
+    parent_name={@parent_name}
+    tree={@tree}
     patch={~p"/accounts"}
   />
 </.modal>

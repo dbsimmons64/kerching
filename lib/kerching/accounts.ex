@@ -380,7 +380,11 @@ defmodule Kerching.Accounts do
       ** (Ecto.NoResultsError)
 
   """
-  def get_account!(id), do: Repo.get!(Account, id)
+  def get_account!(id) do
+    Account
+    |> preload(:parent)
+    |> Repo.get!(id)
+  end
 
   @doc """
   Creates a account.

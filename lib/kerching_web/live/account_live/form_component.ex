@@ -2,6 +2,7 @@ defmodule KerchingWeb.AccountLive.FormComponent do
   use KerchingWeb, :live_component
 
   alias Kerching.Accounts
+  alias Kerching.Accounts.Account
 
   @impl true
   def render(assigns) do
@@ -20,43 +21,21 @@ defmodule KerchingWeb.AccountLive.FormComponent do
         phx-submit="save"
       >
         <.input field={@form[:name]} type="text" label="Name" />
+        <div>Parent Name: <%= @parent_name %></div>
+        <.input field={@form[:parent_id]} type="hidden" />
         <:actions>
           <.button phx-disable-with="Saving...">Save Account</.button>
         </:actions>
       </.simple_form>
-      <ul class="tree">
-        <li>
-          <details open>
-            <summary>Giant planets</summary>
-            <ul>
-              <li>
-                <details>
-                  <summary>Gas giants</summary>
-                  <ul>
-                    <li>Jupiter</li>
-                    <li>Saturn</li>
-                  </ul>
-                </details>
-              </li>
-              <li>
-                <details>
-                  <summary>Ice giants</summary>
-                  <ul>
-                    <li>Uranus</li>
-                    <li>Neptune</li>
-                  </ul>
-                </details>
-              </li>
-            </ul>
-          </details>
-        </li>
-      </ul>
     </div>
     """
   end
 
   @impl true
   def update(%{account: account} = assigns, socket) do
+    IO.puts("=================================")
+    IO.puts("update called")
+    IO.puts("=================================")
     changeset = Accounts.change_account(account)
 
     {:ok,
@@ -76,7 +55,20 @@ defmodule KerchingWeb.AccountLive.FormComponent do
   end
 
   def handle_event("save", %{"account" => account_params}, socket) do
-    save_account(socket, socket.assigns.action, account_params)
+    save_account(socket, socket.assigns.action, account_params) |> IO.inspect()
+  end
+
+  def handle_event("set-parent-account", %{"name" => name, "id" => parent_id}, socket) do
+    changeset =
+      socket.assigns.account
+      |> Accounts.change_account(
+        Map.merge(socket.assigns.form.params, %{"parent_id" => parent_id})
+      )
+      |> Map.put(:action, :validate)
+
+    socket = assign(socket, :parent_name, name)
+
+    {:noreply, assign_form(socket, changeset)}
   end
 
   defp save_account(socket, :edit, account_params) do

@@ -605,6 +605,38 @@ defmodule KerchingWeb.CoreComponents do
     """
   end
 
+  def tree(assigns) do
+    ~H"""
+    <ul class="tree">
+      <.display_children children={@tree} myself={@myself} />
+    </ul>
+    """
+  end
+
+  def display_children(assigns) do
+    ~H"""
+    <%= for child <- assigns.children do %>
+      <li>
+        <details>
+          <summary>
+            <span
+              phx-click="set-parent-account"
+              phx-value-name={child.name}
+              phx-value-id={child.id}
+              phx-target={assigns.myself}
+            >
+              <%= child.name %>
+            </span>
+          </summary>
+          <ul>
+            <.display_children children={child.children} myself={assigns.myself} />
+          </ul>
+        </details>
+      </li>
+    <% end %>
+    """
+  end
+
   ## JS Commands
 
   def show(js \\ %JS{}, selector) do
