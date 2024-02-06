@@ -363,7 +363,9 @@ defmodule Kerching.Accounts do
 
   """
   def list_accounts do
-    Repo.all(Account)
+    Account
+    |> order_by(:name)
+    |> Repo.all()
   end
 
   @doc """
@@ -418,7 +420,7 @@ defmodule Kerching.Accounts do
   """
   def update_account(%Account{} = account, attrs) do
     account
-    |> Account.changeset(attrs)
+    |> Account.update_changeset(attrs)
     |> Repo.update()
   end
 

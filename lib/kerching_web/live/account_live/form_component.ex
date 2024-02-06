@@ -2,7 +2,6 @@ defmodule KerchingWeb.AccountLive.FormComponent do
   use KerchingWeb, :live_component
 
   alias Kerching.Accounts
-  alias Kerching.Accounts.Account
 
   @impl true
   def render(assigns) do
@@ -23,6 +22,10 @@ defmodule KerchingWeb.AccountLive.FormComponent do
         <.input field={@form[:name]} type="text" label="Name" />
         <div>Parent Name: <%= @parent_name %></div>
         <.input field={@form[:parent_id]} type="hidden" />
+
+        <div phx-update="ignore" id="tree">
+          <.tree tree={@tree} myself={@myself} />
+        </div>
         <:actions>
           <.button phx-disable-with="Saving...">Save Account</.button>
         </:actions>
@@ -33,9 +36,6 @@ defmodule KerchingWeb.AccountLive.FormComponent do
 
   @impl true
   def update(%{account: account} = assigns, socket) do
-    IO.puts("=================================")
-    IO.puts("update called")
-    IO.puts("=================================")
     changeset = Accounts.change_account(account)
 
     {:ok,
@@ -55,7 +55,7 @@ defmodule KerchingWeb.AccountLive.FormComponent do
   end
 
   def handle_event("save", %{"account" => account_params}, socket) do
-    save_account(socket, socket.assigns.action, account_params) |> IO.inspect()
+    save_account(socket, socket.assigns.action, account_params)
   end
 
   def handle_event("set-parent-account", %{"name" => name, "id" => parent_id}, socket) do
@@ -67,6 +67,17 @@ defmodule KerchingWeb.AccountLive.FormComponent do
       |> Map.put(:action, :validate)
 
     socket = assign(socket, :parent_name, name)
+
+    {:noreply, assign_form(socket, changeset)}
+  end
+
+  def handle_event("set-parent-account", %{"name" => _name}, socket) do
+    changeset =
+      socket.assigns.account
+      |> Accounts.change_account(Map.merge(socket.assigns.form.params, %{"parent_id" => nil}))
+      |> Map.put(:action, :validate)
+
+    socket = assign(socket, :parent_name, "Top Level")
 
     {:noreply, assign_form(socket, changeset)}
   end

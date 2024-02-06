@@ -15,26 +15,20 @@ defmodule KerchingWeb.AccountLive.Index do
   end
 
   defp apply_action(socket, :edit, %{"id" => id}) do
-    IO.puts("=======================")
-    IO.puts("apply action called")
-    IO.puts("=======================")
-
     socket =
       socket
       |> assign(:page_title, "Edit Account")
-      |> assign(:accounts, Accounts.list_accounts())
       |> assign(:tree, build_tree(Accounts.list_accounts()))
       |> assign(:account, Accounts.get_account!(id))
 
     # Need to redo next bit to get the actual parent_name BUT take into 
     # accoun the fact it might be nil
-    assign(socket, :parent_name, nil)
+    assign(socket, :parent_name, set_parent_name(socket.assigns))
   end
 
   defp apply_action(socket, :new, _params) do
     socket
     |> assign(:page_title, "New Account")
-    |> assign(:accounts, Accounts.list_accounts())
     |> assign(:tree, build_tree(Accounts.list_accounts()))
     |> assign(:account, %Account{})
     |> assign(:parent_name, nil)
@@ -59,6 +53,13 @@ defmodule KerchingWeb.AccountLive.Index do
     {:noreply, stream_delete(socket, :accounts, account)}
   end
 
+  def set_parent_name(assigns) do
+    case assigns.account.parent_id do
+      nil -> "Top Level"
+      _ -> assigns.account.parent.name
+    end
+  end
+
   def add_children(list, node) do
     %{
       id: node.id,
@@ -70,6 +71,18 @@ defmodule KerchingWeb.AccountLive.Index do
   end
 
   def build_tree(list) do
-    Enum.filter(list, &is_nil(&1.parent_id)) |> Enum.map(&add_children(list, &1)) |> dbg()
+    dbg(list)
+    accounts = Enum.filter(list, &is_nil(&1.parent_id)) |> Enum.map(&add_children(list, &1))
+    dbg(accounts)
+
+    [
+      %{
+        id: nil,
+        name: "Top Level",
+        children: []
+      }
+      | accounts
+    ]
+    |> dbg
   end
 end

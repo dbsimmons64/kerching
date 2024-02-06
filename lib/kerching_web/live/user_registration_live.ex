@@ -71,7 +71,6 @@ defmodule KerchingWeb.UserRegistrationLive do
   end
 
   def handle_event("validate", %{"user" => user_params}, socket) do
-    dbg(socket.assigns)
     changeset = Accounts.change_user_registration(%User{}, user_params)
     {:noreply, assign_form(socket, Map.put(changeset, :action, :validate))}
   end
